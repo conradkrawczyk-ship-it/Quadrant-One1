@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quadrant Crack Spread Diesla/Spready — Prognoza Rotacji Kapitału</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0c14;
+    --panel:#12151f;
+    --stroke:#242a3d;
+    --amber:#8b7cf6;
+    --amber-dim:#2c2558;
+    --text:#eef1f7;
+    --muted:#8b93a8;
+    --up:#2dd4a7;
+    --down:#fb5a7e;
+    --warn:#f7b955;
+    --mono:'JetBrains Mono',monospace;
+    --sans:'Outfit',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:var(--sans);
+    background:
+      radial-gradient(900px 500px at 100% -10%, #1d1a42 0%, transparent 55%),
+      radial-gradient(700px 400px at 0% 0%, #151829 0%, transparent 50%),
+      var(--bg);
+    color:var(--text);
+    min-height:100vh;
+  }
+  header{padding:26px 26px 6px;display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;}
+  h1{font-weight:800;letter-spacing:.05em;font-size:clamp(20px,3vw,30px);text-transform:uppercase;}
+  .sub{color:var(--amber);font-weight:500;margin-top:6px;font-size:14px;}
+  .meta{color:var(--muted);font-size:12.5px;font-family:var(--mono);text-align:right;}
+  .status-pill{
+    display:inline-block;font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.04em;
+    padding:4px 10px;border-radius:999px;margin-bottom:6px;text-transform:uppercase;
+  }
+  .status-pill.ok{color:var(--up);border:1px solid var(--up);background:rgba(45,212,167,.1);}
+  .status-pill.mid{color:var(--warn);border:1px solid var(--warn);background:rgba(247,185,85,.1);}
+  .status-pill.bad{color:var(--down);border:1px solid var(--down);background:rgba(251,90,126,.1);}
+  .btn{background:transparent;border:1px solid var(--amber);color:var(--amber);padding:8px 14px;border-radius:999px;
+    cursor:pointer;font-family:inherit;font-weight:700;margin-top:8px;font-size:12.5px;}
+  .btn:hover{background:rgba(139,124,246,.12);}
+  main{padding:10px 26px 48px;max-width:1280px;margin:0 auto;}
+  .section-title{margin:30px 0 12px;font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber);}
+
+  .quad-wrap{display:grid;grid-template-columns:1fr;gap:16px;margin:16px 0 8px;}
+  @media (min-width:980px){.quad-wrap{grid-template-columns:1.05fr .95fr;}}
+  .panel{border:1px solid var(--stroke);border-radius:14px;padding:18px;background:var(--panel);}
+  #quad{width:100%;height:320px;}
+  .quad-legend{color:var(--muted);font-size:12px;margin-top:8px;line-height:1.5;}
+
+  .verdict{border:1px solid var(--amber);border-radius:14px;padding:20px 22px;
+    background:linear-gradient(180deg, rgba(139,124,246,.09), rgba(18,21,31,.6));}
+  .verdict h2{color:var(--amber);font-size:12px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;}
+  .verdict .big{font-size:clamp(18px,2.1vw,24px);font-weight:700;line-height:1.35;}
+  .verdict p{color:#c7cbdc;margin-top:10px;line-height:1.6;font-size:14px;}
+  .taglist{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+  .tag{border-radius:999px;padding:6px 11px;font-size:12px;font-weight:700;font-family:var(--mono);}
+  .tag.favor{border:1px solid var(--up);color:var(--up);background:rgba(45,212,167,.08);}
+  .tag.avoid{border:1px solid var(--down);color:var(--down);background:rgba(251,90,126,.08);}
+
+  .toppick{border:1.5px solid var(--up);border-radius:16px;padding:20px 22px;margin:16px 0;
+    background:linear-gradient(180deg, rgba(45,212,167,.1), rgba(18,21,31,.6));
+    display:flex;flex-wrap:wrap;gap:16px;align-items:center;justify-content:space-between;}
+  .toppick .label{color:var(--up);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;margin-bottom:6px;}
+  .toppick .name{font-size:clamp(20px,2.6vw,28px);font-weight:800;}
+  .toppick .name .tk{font-family:var(--mono);color:var(--up);}
+  .toppick .why{color:#c7cbdc;font-size:13.5px;margin-top:6px;max-width:640px;line-height:1.5;}
+  .toppick .conf{font-family:var(--mono);font-size:11.5px;color:var(--muted);padding:5px 12px;border:1px solid var(--stroke);border-radius:999px;white-space:nowrap;}
+  .toppick.weak{border-color:var(--warn);background:linear-gradient(180deg, rgba(247,185,85,.1), rgba(18,21,31,.6));}
+  .toppick.weak .label{color:var(--warn);}
+  .toppick.weak .name .tk{color:var(--warn);}
+
+  .grid3{display:grid;grid-template-columns:repeat(1,1fr);gap:14px;margin:20px 0;}
+  @media (min-width:700px){.grid3{grid-template-columns:repeat(2,1fr);}}
+  @media (min-width:1080px){.grid3{grid-template-columns:repeat(4,1fr);}}
+  .card{border:1px solid var(--stroke);border-radius:14px;padding:16px;background:var(--panel);min-height:126px;}
+  .num{width:24px;height:24px;border-radius:50%;background:var(--amber);color:#161229;font-weight:800;
+    display:inline-flex;align-items:center;justify-content:center;font-size:12px;margin-right:8px;}
+  .card h3{font-size:13.5px;display:flex;align-items:center;margin-bottom:10px;}
+  .val{font-family:var(--mono);font-size:24px;font-weight:600;}
+  .hint{color:var(--muted);font-size:11.5px;margin-top:6px;line-height:1.45;}
+  .ok{color:var(--up);} .bad{color:var(--down);} .mid{color:var(--warn);}
+
+  .sig-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:16px 0;}
+  @media (min-width:640px){.sig-grid{grid-template-columns:repeat(3,1fr);}}
+  @media (min-width:960px){.sig-grid{grid-template-columns:repeat(4,1fr);}}
+  @media (min-width:1240px){.sig-grid{grid-template-columns:repeat(6,1fr);}}
+  .sig-card{border:1px solid var(--stroke);border-radius:14px;padding:14px;background:var(--panel);
+    display:flex;flex-direction:column;gap:9px;cursor:default;}
+  .sig-card.ok{border-color:rgba(45,212,167,.45);}
+  .sig-card.bad{border-color:rgba(251,90,126,.45);}
+  .sig-head{display:flex;justify-content:space-between;align-items:flex-start;}
+  .sig-ticker{font-family:var(--mono);font-weight:800;font-size:16px;}
+  .sig-arrow{font-size:22px;font-weight:800;line-height:1;}
+  .sig-arrow.ok{color:var(--up);} .sig-arrow.bad{color:var(--down);} .sig-arrow.mid{color:var(--muted);}
+  .sig-name{font-size:11px;color:var(--muted);margin-top:-6px;}
+  .sig-dots{display:flex;gap:4px;align-items:center;height:9px;}
+  .sig-dots .dot{width:7px;height:7px;border-radius:50%;background:#232840;flex:none;}
+  .sig-dots .dot.g{background:var(--up);box-shadow:0 0 5px rgba(45,212,167,.65);}
+  .sig-dots .dot.r{background:var(--down);box-shadow:0 0 5px rgba(251,90,126,.65);}
+  .dot-plus{font-family:var(--mono);font-size:10px;color:var(--muted);margin-left:2px;}
+  .vol-track{position:relative;height:6px;border-radius:4px;background:#171b29;overflow:hidden;}
+  .vol-mark{position:absolute;left:50%;top:0;bottom:0;width:1px;background:#3a4158;z-index:1;}
+  .vol-fill{position:absolute;left:0;top:0;bottom:0;border-radius:4px;background:var(--muted);}
+  .vol-fill.hi{background:var(--amber);box-shadow:0 0 6px rgba(139,124,246,.55);}
+  .vol-fill.lo{background:#2c3247;}
+  .sig-status{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;
+    padding:4px 6px;border-radius:8px;text-align:center;}
+  .sig-status.ok{color:var(--up);background:rgba(45,212,167,.1);}
+  .sig-status.bad{color:var(--down);background:rgba(251,90,126,.1);}
+  .sig-status.mid{color:var(--warn);background:rgba(247,185,85,.1);}
+  .sig-legend{color:var(--muted);font-size:11.5px;margin:-4px 0 14px;line-height:1.5;}
+  .sig-legend b{color:var(--text);font-weight:600;}
+
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;color:var(--muted);font-weight:500;padding:8px;border-bottom:1px solid var(--stroke);
+    font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;}
+  td{padding:9px 8px;border-bottom:1px solid #1d2233;}
+  tr:hover td{background:rgba(139,124,246,.04);}
+  tr.top-row td{background:rgba(45,212,167,.07);border-bottom:1px solid rgba(45,212,167,.3);}
+  tr.top-row .ticker{color:var(--up);}
+  .right{text-align:right;font-family:var(--mono);}
+  .ticker{color:var(--amber);font-weight:700;font-family:var(--mono);}
+  .sig{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px;vertical-align:middle;}
+  .sig.g{background:var(--up);box-shadow:0 0 6px rgba(45,212,167,.7);}
+  .sig.r{background:var(--down);box-shadow:0 0 6px rgba(251,90,126,.7);}
+  .rr-badge{font-family:var(--mono);font-size:11px;color:var(--muted);}
+
+  .watch{border:1px solid var(--stroke);border-radius:14px;padding:18px 20px;background:var(--panel);margin-top:6px;}
+  .watch li{margin:10px 0;color:#c7cbdc;font-size:13.5px;line-height:1.55;list-style:none;padding-left:18px;position:relative;}
+  .watch li::before{content:"▸";position:absolute;left:0;color:var(--amber);}
+  .watch strong{color:var(--amber);}
+  .scenario{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px;}
+  @media (min-width:820px){.scenario{grid-template-columns:1fr 1fr;}}
+  .scen-box{border:1px solid var(--stroke);border-radius:12px;padding:14px 16px;}
+  .scen-box h4{font-size:12px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;}
+  .scen-box.bull h4{color:var(--up);} .scen-box.bear h4{color:var(--down);}
+  .scen-box p{font-size:13px;color:#b6bad0;line-height:1.55;}
+
+  .conflict{border:1px solid var(--stroke);border-radius:14px;padding:18px 20px;background:var(--panel);margin-top:6px;}
+  .conflict.on{border-color:var(--warn);background:linear-gradient(180deg, rgba(247,185,85,.08), rgba(18,21,31,.6));}
+  .conflict .chead{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+  .conflict .chead .dot{width:9px;height:9px;border-radius:50%;background:var(--muted);}
+  .conflict.on .chead .dot{background:var(--warn);box-shadow:0 0 6px rgba(247,185,85,.7);}
+  .conflict .chead h2{font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--text);}
+  .conflict.on .chead h2{color:var(--warn);}
+  .conflict .lead{color:#c7cbdc;font-size:13.5px;line-height:1.6;margin-bottom:12px;}
+  .conflict .why{color:var(--muted);font-size:12.5px;line-height:1.6;margin-bottom:14px;padding:10px 12px;border-left:2px solid var(--stroke);}
+  .conflict h4{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber);margin-bottom:8px;}
+  .conflict ul{list-style:none;}
+  .conflict li{margin:8px 0;color:#c7cbdc;font-size:13px;line-height:1.5;padding-left:16px;position:relative;}
+  .conflict li::before{content:"▸";position:absolute;left:0;color:var(--amber);}
+  .conflict li .when{color:var(--muted);font-family:var(--mono);font-size:11.5px;}
+  .conflict strong{color:var(--text);}
+
+  footer{color:var(--muted);font-size:11.5px;padding:8px 26px 32px;max-width:1280px;margin:0 auto;line-height:1.55;}
+</style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Quadrant Crack Spread Diesla / Spready</h1>
+      <div class="sub">Crack spread diesla (ULSD–WTI) × Spready kredytowe (wskaźniki wyprzedzające) · sygnały rotacji sektorowej 1–4 tyg.</div>
+    </div>
+    <div class="meta">
+      <div id="statusPill" class="status-pill mid">sprawdzanie źródła…</div>
+      <div id="stamp">sesja —</div>
+      <button class="btn" id="refresh">Odśwież dane</button>
+    </div>
+  </header>
+  <main>
+
+    <div class="toppick" id="topPick"></div>
+
+    <div class="quad-wrap">
+      <div class="panel">
+        <div class="section-title" style="margin-top:0;">Mapa reżimu — crack spread diesla vs spready kredytowe (kierunek zmiany)</div>
+        <svg id="quad" viewBox="0 0 460 320"></svg>
+        <div class="quad-legend" id="quadLegend"></div>
+      </div>
+      <div class="verdict">
+        <h2>Bieżący reżim i playbook sektorowy</h2>
+        <div class="big" id="verdict-title">—</div>
+        <p id="verdict-body">—</p>
+        <div class="taglist" id="verdict-tags"></div>
+      </div>
+    </div>
+
+    <div class="section-title">Wskaźniki wyprzedzające</div>
+    <section class="grid3" id="macro-cards"></section>
+
+    <div class="section-title">Sygnały sektorowe · napływ / odpływ kapitału</div>
+    <div class="sig-legend">Strzałka = kierunek. Kropki = dni z rzędu potwierdzenia (im więcej, tym mocniejszy sygnał, nie szum). Pasek = wolumen względem 20-dniowej normy (kreska = 1×). Najedź na kartę po szczegóły.</div>
+    <div class="sig-grid" id="sigGrid"></div>
+
+    <div class="section-title">Sygnały sprzeczne — reżim vs rynek</div>
+    <div class="conflict" id="conflict"></div>
+
+    <div class="section-title">Scenariusze: crack spread diesla w górę vs w dół</div>
+    <div class="watch">
+      <ul id="catalysts"></ul>
+      <div class="scenario">
+        <div class="scen-box bull">
+          <h4>Crack spread w górę</h4>
+          <p id="scenUp">—</p>
+        </div>
+        <div class="scen-box bear">
+          <h4>Crack spread w dół</h4>
+          <p id="scenDown">—</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+  <footer>
+    Narzędzie analityczne — własna, uproszczona implementacja, nie oficjalne narzędzie żadnej firmy zewnętrznej. Nie jest rekomendacją inwestycyjną.
+    Poziom cracku (z-score/percentyl) liczony jest z ~2-letniej historii dziennej ULSD–WTI PO korekcie sezonowej — każdy dzień porównywany jest do własnej sezonowej normy (średnia z okna ±15 dni kalendarzowych, cyklicznie, z całej dostępnej historii), nie do płaskiej średniej rocznej. Crack spread diesla ma silny, powtarzalny wzorzec sezonowy (sezon grzewczy jesień/zima, przeglądy rafineryjne), więc płaski z-score myliłby tę sezonowość z sygnałem makro. To uproszczona korekta (okno kalendarzowe), nie pełna dekompozycja STL/regresja harmoniczna, i przy ~2 latach danych nadal jest przybliżeniem. Jeśli dłuższy fetch się nie powiedzie albo zabraknie dat do korekty, narzędzie spada na płaski (nieskorygowany) z-score — pokazuje to jawnie w karcie, nie zgaduje po cichu.
+    Punkt "PROGNOZA 4-12T" na mapie reżimu to jakościowa heurystyka (powrót do średniej przy ekstremalnym z-score + kierunek sugerowany przez strukturę terminową VIX), nie model predykcyjny ani sygnał transakcyjny — traktuj go jako scenariusz do zakwestionowania, nie jako prognozę.
+    Wskaźniki wyprzedzające: krzywa 10Y-2Y i spready kredytowe HY OAS (FRED, przez pośredni endpoint), crack spread diesla liczony jako (cena ULSD futures × 42 − cena WTI futures) z Yahoo Finance (HO=F, CL=F), struktura terminowa VIX (^VIX vs ^VIX3M, Yahoo/CBOE) jako jedyny w pełni przyszłościowy wskaźnik — cena, jaką rynek opcji płaci dziś za ochronę na 30 vs 90 dni. Może się nieznacznie różnić od notowań hurtowych/rafineryjnych. Kierunek spreadów liczony vs odczyt sprzed ok. 2 tygodni. Ceny/wolumen ETF sektorowych: Stooq (podstawowe źródło), fallback Yahoo Finance.
+  </footer>
+
+<script>
+const NAMES = {XLK:"Technologia",XLF:"Finanse",XLI:"Przemysł",XLE:"Energia",XLU:"Usługi komunalne",XLV:"Ochrona zdrowia",XLY:"Konsumpcja uznaniowa",XLP:"Dobra podstawowe",XLB:"Materiały",XLRE:"Nieruchomości",XLC:"Komunikacja",TLT:"Obligacje 20Y+"};
+const TICKERS = Object.keys(NAMES);
+const DIESEL_TICKER = "HO=F"; // NY Harbor ULSD futures ($/gal) — wskaźnik wyprzedzający realnego popytu (transport/przemysł)
+const CRUDE_TICKER = "CL=F"; // WTI futures ($/bbl) — potrzebny tylko do policzenia crack spreadu, nie występuje osobno w UI
+const VIX_TICKER = "^VIX"; // spot VIX — oczekiwana zmienność 30-dniowa (rynek opcji)
+const VIX3M_TICKER = "^VIX3M"; // VIX 3-miesięczny — oczekiwana zmienność w dłuższym horyzoncie
+// Struktura terminowa VIX to JEDYNY w tym narzędziu wskaźnik faktycznie "przyszłościowy" —
+// to cena, jaką rynek opcji płaci TERAZ za ochronę na kolejne 30 vs 90 dni, a nie reakcja
+// na coś, co już się wydarzyło. Backwardation (spot > 3M) = opcje wyceniają bliski stres
+// zanim pojawi się on w spreadach kredytowych czy cenach sektorów.
+const REFRESH_MS = 120000;
+let nextAt = 0;
+
+const FALLBACK = {
+  asof: "2026-09-14",
+  source: "post-close",
+  generated_at: "2026-09-15 01:10 UTC",
+  macro: {
+    t10y2y: 0.35, t10y2y_date: "2026-09-14",
+    hy_oas: 2.65, hy_oas_date: "2026-09-11",
+    hy_oas_prev: 2.52, hy_oas_prev_date: "2026-08-28",
+    // UWAGA: to jest przykładowy snapshot fallback, nie gwarancja aktualności —
+    // narzędzie zawsze próbuje najpierw pobrać dane live (patrz loadLive()).
+    // zscore_2y / pctile_2y liczone są PO korekcie sezonowej (patrz seasonalAdjust()) —
+    // porównanie do normy dla tej samej pory roku, nie do płaskiej 2-letniej średniej.
+    // seasonal_baseline = ta sezonowa norma; hist_mean_2y = płaska średnia dla kontekstu.
+    crack: { value: 92.40, ret_1w: -8.2, ret_1m: 14.6, date: "2026-09-14", zscore_2y: 1.8, pctile_2y: 92.0, hist_mean_2y: 22.10, seasonal_baseline: 58.00, seasonal_adjusted: true },
+    crude_ret_1m: 11.8,
+    vix_term: { vix: 15.84, vix3m: 18.60, date: "2026-09-11" }
+  },
+  sectors: [
+    {ticker:"XLE",name:"Energia",price:64.53,ret_1w:0.73,ret_1m:5.68,ret_3m:12.13,rs_1w:1.73,rs_1m:7.87,rs_3m:9.55,streak_days:2,vol_ratio:1.65,volume:46271338},
+    {ticker:"XLC",name:"Komunikacja",price:115.07,ret_1w:2.71,ret_1m:2.24,ret_3m:3.06,rs_1w:3.71,rs_1m:4.42,rs_3m:0.48,streak_days:4,vol_ratio:1.05,volume:4311171},
+    {ticker:"XLV",name:"Ochrona zdrowia",price:167.75,ret_1w:-2.16,ret_1m:-0.37,ret_3m:9.06,rs_1w:-1.16,rs_1m:1.81,rs_3m:6.48,streak_days:-3,vol_ratio:1.17,volume:9233937},
+    {ticker:"XLP",name:"Dobra podstawowe",price:84.42,ret_1w:-0.19,ret_1m:-1.84,ret_3m:-1.63,rs_1w:0.81,rs_1m:0.35,rs_3m:-4.21,streak_days:1,vol_ratio:1.06,volume:10397422},
+    {ticker:"XLF",name:"Finanse",price:57.03,ret_1w:-1.84,ret_1m:-2.11,ret_3m:6.92,rs_1w:-0.84,rs_1m:0.07,rs_3m:4.34,streak_days:-1,vol_ratio:1.26,volume:38019431},
+    {ticker:"XLK",name:"Technologia",price:184.28,ret_1w:-1.6,ret_1m:-3.4,ret_3m:-0.28,rs_1w:-0.6,rs_1m:-1.22,rs_3m:-2.86,streak_days:-2,vol_ratio:1.32,volume:8458066},
+    {ticker:"XLB",name:"Materiały",price:50.49,ret_1w:-3.72,ret_1m:-3.48,ret_3m:-3.24,rs_1w:-2.72,rs_1m:-1.29,rs_3m:-5.82,streak_days:-4,vol_ratio:1.03,volume:11380265},
+    {ticker:"XLRE",name:"Nieruchomości",price:43.12,ret_1w:-1.84,ret_1m:-4.43,ret_3m:-4.94,rs_1w:-0.84,rs_1m:-2.25,rs_3m:-7.52,streak_days:2,vol_ratio:1.19,volume:6105329},
+    {ticker:"XLY",name:"Konsumpcja uznaniowa",price:112.85,ret_1w:-1.79,ret_1m:-4.73,ret_3m:-3.22,rs_1w:-0.79,rs_1m:-2.54,rs_3m:-5.8,streak_days:2,vol_ratio:0.95,volume:5259891},
+    {ticker:"XLU",name:"Usługi komunalne",price:41.82,ret_1w:-2.92,ret_1m:-5.04,ret_3m:-6.09,rs_1w:-1.92,rs_1m:-2.86,rs_3m:-8.66,streak_days:1,vol_ratio:1.17,volume:23470575},
+    {ticker:"XLI",name:"Przemysł",price:169.93,ret_1w:-3.05,ret_1m:-8.54,ret_3m:-3.55,rs_1w:-2.05,rs_1m:-6.35,rs_3m:-6.13,streak_days:3,vol_ratio:1.05,volume:7309849},
+    {ticker:"TLT",name:"Obligacje 20Y+",price:88.40,ret_1w:0.61,ret_1m:1.15,ret_3m:-1.05,rs_1w:1.61,rs_1m:0.9,rs_3m:-3.6,streak_days:3,vol_ratio:1.02,volume:21000000}
+  ]
+};
+
+function fmt(n,d=2){ return (n>=0?"+":"") + Number(n).toFixed(d); }
+function fmtVol(n){ if(n>=1e6) return (n/1e6).toFixed(1)+" mln"; if(n>=1e3) return (n/1e3).toFixed(0)+" tys."; return String(n); }
+function cls(n){ return n>0.15?"ok":n<-0.15?"bad":"mid"; }
+
+const OAS_TIGHT_MAX = 3.2, OAS_STRESS_MIN = 4.5;
+
+// Oficjalne daty posiedzeń FOMC w 2026 (godzina decyzji: 14:00 ET / 20:00 CET)
+const FOMC_DATES_2026 = ["2026-01-28","2026-03-18","2026-04-29","2026-06-17","2026-07-29","2026-09-16","2026-10-28","2026-12-09"];
+function nextFomc(){
+  const now = new Date();
+  const upcoming = FOMC_DATES_2026.map(d=>new Date(d+"T18:00:00Z")).find(d=>d>now);
+  if(!upcoming) return null;
+  return upcoming.toLocaleDateString("pl-PL",{day:"numeric",month:"long",year:"numeric"});
+}
+function nextWednesday(){
+  const now = new Date();
+  const d = new Date(now);
+  d.setDate(now.getDate() + ((3 - now.getDay() + 7) % 7 || 7));
+  return d.toLocaleDateString("pl-PL",{day:"numeric",month:"long"});
+}
+function nextThursday(){
+  const now = new Date();
+  const d = new Date(now);
+  d.setDate(now.getDate() + ((4 - now.getDay() + 7) % 7 || 7));
+  return d.toLocaleDateString("pl-PL",{day:"numeric",month:"long"});
+}
+
+// Sygnał rotacji kapitału — NIE ranking po czystym momentum (rs_1m).
+// Logika: kapitał, który już odpłynął z sektora od dawna (ujemne rs_3m) i zaczyna
+// zawracać (rs_1w poprawia się względem rs_1m) to kandydat na NAPŁYW — rynek
+// zwykle odwraca się zanim potwierdzą to dane makro.
+// Kapitał, który napływał od tygodni (dodatnie rs_3m), ale traci tempo
+// (rs_1m słabszy niż rs_3m) to sektor zatłoczony/spóźniony — ryzyko realizacji zysków.
+// streak_days = ile dni z rzędu siła względna (cena sektora / SPY) rośnie (+) lub
+// spada (-) nieprzerwanie — to filtr szumu: jeden dobry dzień ≠ odwrócenie trendu.
+//
+// vol_ratio = wolumen dnia / średni wolumen — wolumen jako miara przekonania stojącego
+// za ruchem RS. Ten sam ruch ceny na wolumenie wyraźnie powyżej średniej (duzi gracze
+// faktycznie zajmują pozycję) jest bardziej wiarygodny niż identyczny ruch na cienkim,
+// niskim wolumenie (może być szumem/pojedynczym zleceniem). Dlatego skalujemy inScore
+// i outRiskScore mnożnikiem wolumenu, ograniczonym do +/-30%, żeby wolumen modulował
+// sygnał, a nie całkowicie go zastępował.
+function rotationSignal(s){
+  const turning = s.rs_1w - s.rs_1m;
+  const fatigue = s.rs_3m - s.rs_1m;
+  const alreadyLeft = -s.rs_3m;
+  const alreadyIn = s.rs_3m;
+  const streak = s.streak_days || 0;
+  const vr = s.vol_ratio || 1;
+  const volFactor = Math.max(0.7, Math.min(1.3, vr));
+
+  const inScore = (0.6*alreadyLeft + 1.4*turning) * volFactor;
+  const outRiskScore = (0.6*alreadyIn + 1.0*fatigue) * volFactor;
+
+  const CONFIRM_DAYS = 2;
+  const VOL_STRONG = 1.3, VOL_WEAK = 0.85;
+  const volNote = vr >= VOL_STRONG ? ` · wolumen ${vr.toFixed(2)}× (wysoki, silne potwierdzenie)`
+                 : vr < VOL_WEAK  ? ` · wolumen ${vr.toFixed(2)}× (niski, słabsze potwierdzenie)`
+                 : ` · wolumen ${vr.toFixed(2)}×`;
+
+  let tag = null;
+  if (inScore > 3 && turning > 0 && streak >= CONFIRM_DAYS) {
+    tag = {label:`NAPŁYW potwierdzony · ${streak}d z rzędu${volNote}`, short:"napływ potwierdzony", cls:"ok"};
+  } else if (inScore > 3 && turning > 0) {
+    tag = {label:`NAPŁYW wczesny — niepotwierdzony (${streak}d)${volNote}`, short:"napływ, wczesny", cls:"mid"};
+  } else if (outRiskScore > 3 && s.rs_3m > 0 && streak <= -CONFIRM_DAYS) {
+    tag = {label:`RYZYKO potwierdzone · ${Math.abs(streak)}d spadku${volNote}`, short:"ryzyko potwierdzone", cls:"bad"};
+  } else if (outRiskScore > 3 && s.rs_3m > 0) {
+    tag = {label:`zatłoczony — spadek tempa jeszcze niepotwierdzony${volNote}`, short:"zatłoczony", cls:"mid"};
+  } else if (alreadyLeft > 3 && turning <= 0) {
+    tag = {label:"wyprzedany, brak jeszcze odwrotu", short:"wyprzedany", cls:"mid"};
+  } else {
+    tag = {label:"neutralnie", short:"neutralnie", cls:"mid"};
+  }
+
+  return {turning:+turning.toFixed(2), fatigue:+fatigue.toFixed(2), inScore:+inScore.toFixed(2), outRiskScore:+outRiskScore.toFixed(2), streak, volFactor:+volFactor.toFixed(2), tag};
+}
+
+// Reżim rynkowy oparty na TRZECH dziennych, rynkowych wskaźnikach wyprzedzających —
+// crack spread diesla, ropa WTI i spready kredytowe — zamiast miesięcznych ankiet (PMI/CPI).
+// Diesel to "wskaźnik realnej gospodarki": napędza transport ciężarowy, przemysł,
+// rolnictwo i budownictwo. ALE rosnący crack spread jest niejednoznaczny — może
+// oznaczać silny popyt (dobra wiadomość dla cyklicznych) LUB wąskie gardło
+// rafineryjne/podażowe (zły znak, bo podbija koszty firmom zużywającym diesel,
+// nie potwierdzając wzrostu popytu). Rozstrzygamy to krzyżując crack spread z ropą WTI:
+// crack ↑ + ropa też ↑ = szeroki popyt energetyczny (wiarygodne). crack ↑ + ropa płaska/↓
+// = to rafineria/podaż diesla drożeje, nie popyt — koszt, nie potwierdzenie wzrostu.
+// Spready kredytowe rozstrzygają drugi wymiar: czy rynek boi się tego kosztu.
+const OIL_REGIMES = {
+  demand_pull: {
+    confirmed: {
+      label: "CRACK ↑ + ROPA ↑ · POPYT REALNY (spready wąskie)",
+      favor: ["XLE","XLB","XLI","XLF"], avoid: ["TLT","XLU"],
+      desc: "Crack spread diesla i ropa WTI rosną razem, spready kredytowe wąskie — to szeroki, wiarygodny sygnał popytowy w realnej gospodarce, nie tylko efekt rafineryjny. Klasyczne środowisko dla energii, materiałów, przemysłu i finansów."
+    },
+    unconfirmed: {
+      label: "CRACK ↑, ROPA PŁASKA/↓ · WĄSKIE GARDŁO RAFINERYJNE (spready wąskie)",
+      favor: ["XLE"], avoid: ["XLI","XLB","XLY"],
+      desc: "Crack spread rośnie, ale ropa WTI NIE potwierdza — to podażowe/rafineryjne wąskie gardło (niedobór mocy przerobowych, nie wzrost popytu). Podbija koszty firmom zużywającym diesel (transport, przemysł) bez sygnału realnego wzrostu — zysk łapią głównie rafinerzy w XLE, nie cykliczne sektory."
+    }
+  },
+  supply_shock: {
+    confirmed: {
+      label: "CRACK ↑ + ROPA ↑ · SZEROKI SZOK KOSZTOWY (spready szerokie)",
+      favor: ["XLE","XLP"], avoid: ["XLY","XLK","TLT"],
+      desc: "Crack spread i ropa rosną razem, a spready kredytowe się rozszerzają — rynek zaczyna wyceniać ryzyko dla wzrostu przy drogiej energii na szeroką skalę. Korzysta energetyka i defensywa z siłą cenową; traci konsumpcja uznaniowa i technologia."
+    },
+    unconfirmed: {
+      label: "CRACK ↑, ROPA PŁASKA/↓ · KRYZYS RAFINERYJNY + STRES (spready szerokie)",
+      favor: ["XLE","XLP","XLU"], avoid: ["XLI","XLY","XLB","XLK"],
+      desc: "Wąskie gardło rafineryjne (crack ↑ bez potwierdzenia ropy) nakłada się na rozszerzające się spready kredytowe — koszt diesla rośnie bez wsparcia popytu, a rynek kredytowy zaczyna się tego bać. Najbardziej defensywny wariant: ucieczka do sektorów z siłą cenową, unikanie firm zależnych od transportu/frachtu."
+    }
+  },
+  disinflation_tailwind: {
+    label: "CRACK SPREAD W DÓŁ · ZDROWA DEZINFLACJA (spready się zacieśniają)",
+    favor: ["XLY","XLK","XLC"], avoid: ["XLE"],
+    desc: "Słabnący crack spread diesla bez stresu kredytowego to zwykle niższe koszty transportu i inputów, nie sygnał recesyjny — premia dla konsumenta i marż, wsparcie dla konsumpcji uznaniowej i spółek wzrostowych."
+  },
+  demand_destruction: {
+    label: "CRACK SPREAD W DÓŁ · OBAWA O RECESJĘ (spready się rozszerzają)",
+    favor: ["XLU","XLP","TLT"], avoid: ["XLE","XLI","XLB","XLY"],
+    desc: "Słabnący crack spread diesla razem z rosnącymi spreadami kredytowymi to jeden z bardziej wiarygodnych wczesnych sygnałów recesyjnych — spadający popyt na transport ciężarowy i przemysł plus rosnący stres kredytowy — kapitał ucieka do defensywy i długich obligacji."
+  }
+};
+
+// Korekta sezonowa cracku: crack spread diesla ma silny, powtarzalny wzorzec roczny
+// (sezon grzewczy jesień/zima podbija ULSD, przeglądy rafineryjne wiosną/jesienią) —
+// niezwiązany z gospodarką. Płaski z-score liczony z 2 lat myli tę sezonowość z sygnałem.
+// Tu dla KAŻDEGO dnia liczymy "sezonową normę" jako średnią wszystkich historycznych
+// obserwacji w oknie +/- windowDays dni kalendarzowych (cyklicznie — grudzień i styczeń
+// się łączą), odejmujemy ją, i dopiero na tej reszcie (anomalii) liczymy z-score/percentyl.
+// To uproszczenie (okno kalendarzowe, nie pełna dekompozycja STL/regresja harmoniczna),
+// ale przy tylko ~2 latach danych usuwa dominującą część zniekształcenia sezonowego.
+// Zwraca null, jeśli brakuje dat albo okno ma za mało punktów, żeby ufać normie —
+// w takim wypadku loadLive() spada z powrotem na płaski (nieskorygowany) z-score.
+function dayOfYear(dateStr){
+  const d = new Date(dateStr+"T00:00:00Z");
+  const start = Date.UTC(d.getUTCFullYear(), 0, 1);
+  return Math.floor((d.getTime()-start)/86400000);
+}
+function circularDayDiff(a,b){ const diff=Math.abs(a-b); return Math.min(diff, 365-diff); }
+function seasonalAdjust(values, dates, windowDays=15){
+  if (!dates || dates.length!==values.length || dates.some(d=>!d)) return null;
+  const doys = dates.map(dayOfYear);
+  const anomaly = new Array(values.length);
+  let lastBaseline = null;
+  for (let i=0;i<values.length;i++){
+    let sum=0, count=0;
+    for (let j=0;j<values.length;j++){
+      if (circularDayDiff(doys[j], doys[i]) <= windowDays){ sum+=values[j]; count++; }
+    }
+    if (count < 15) return null; // za mało punktów w oknie tej pory roku, by ufać normie
+    const baseline = sum/count;
+    anomaly[i] = values[i]-baseline;
+    if (i===values.length-1) lastBaseline = baseline;
+  }
+  const meanA = anomaly.reduce((s,x)=>s+x,0)/anomaly.length;
+  const varA = anomaly.reduce((s,x)=>s+(x-meanA)**2,0)/anomaly.length;
+  const stdA = Math.sqrt(varA);
+  const lastAnomaly = anomaly.at(-1);
+  const flatMean = values.reduce((s,x)=>s+x,0)/values.length;
+  return {
+    zscoreLast: stdA>0 ? +(((lastAnomaly-meanA)/stdA).toFixed(2)) : 0,
+    pctileLast: +(100*anomaly.filter(v=>v<=lastAnomaly).length/anomaly.length).toFixed(1),
+    baselineLast: +lastBaseline.toFixed(2),
+    flatMean: +flatMean.toFixed(2)
+  };
+}
+
+// Wielkość ruchu, nie tylko znak. 0 = brak ruchu, 1 = ruch ekstremalny.
+// Dla cracku: preferujemy z-score (poziom vs sezonowa norma, patrz seasonalAdjust) nad
+// ret_1m, bo dwucyfrowy % miesięczny ruch znaczy zupełnie co innego przy cracku $20 vs $90.
+// Fallback na ret_1m, jeśli z-score niedostępny (np. przy krótkiej historii live-fetch).
+function crackMagnitude(crack){
+  if (crack.zscore_2y !== undefined && crack.zscore_2y !== null){
+    return Math.min(Math.abs(crack.zscore_2y) / 3, 1);
+  }
+  return Math.min(Math.abs(crack.ret_1m) / 10, 1);
+}
+function oasMagnitude(hyOas, hyOasPrev){
+  const moveBp = Math.abs(hyOas - hyOasPrev) * 100;
+  return Math.min(moveBp / 50, 1); // 50 pb w ~2 tyg. = pełna skala
+}
+function crackLevelLabel(crack){
+  if (crack.zscore_2y === undefined || crack.zscore_2y === null) return null;
+  const z = crack.zscore_2y;
+  if (z >= 2.5) return "EKSTREMALNY poziom (jak na tę porę roku)";
+  if (z >= 1.5) return "wyraźnie podwyższony poziom (jak na tę porę roku)";
+  if (z >= 0.5) return "lekko podwyższony poziom (jak na tę porę roku)";
+  if (z > -0.5) return "poziom w normie sezonowej";
+  return "poziom poniżej normy sezonowej";
+}
+
+// Pewność reżimu: krzyżujemy binarny sygnał OAS (szerzy się / nie) z (1) tym, czy ruch
+// jest w ogóle znaczący co do wielkości, i (2) czy struktura terminowa VIX — jedyny
+// naprawdę przyszłościowy sygnał w tym narzędziu — potwierdza czy przeczy. Rozjazd
+// między OAS a VIX nie jest błędem, ale realnym sygnałem "nie wszystko jednym głosem".
+function assessConfidence(macro, oasWidening){
+  const vixData = macro.vix_term;
+  const vixBack = vixData ? vixData.vix > vixData.vix3m : null;
+  const moveBp = (macro.hy_oas - macro.hy_oas_prev) * 100;
+  const meaningfulMove = Math.abs(moveBp) >= 25;
+  const stillTight = macro.hy_oas < OAS_TIGHT_MAX;
+  const notes = [];
+  let level = "wysoka";
+
+  if (oasWidening && !meaningfulMove){
+    level = "niska (techniczna)";
+    notes.push(`Rozszerzenie OAS o ${moveBp.toFixed(0)} pb mieści się w szumie — sam poziom (${macro.hy_oas.toFixed(2)}%) nadal jest ${stillTight ? "poniżej progu \"ciasno\" (" + OAS_TIGHT_MAX + "%)" : "w strefie neutralnej"}.`);
+  }
+  if (vixData){
+    if (oasWidening && !vixBack){
+      notes.push(`Struktura terminowa VIX jest w contango (${vixData.vix.toFixed(1)} / ${vixData.vix3m.toFixed(1)}) — rynek opcji NIE potwierdza rozszerzania się spreadów kredytowych.`);
+      level = level === "wysoka" ? "średnia" : level;
+    } else if (!oasWidening && vixBack){
+      notes.push(`Struktura terminowa VIX jest w backwardation (${vixData.vix.toFixed(1)} / ${vixData.vix3m.toFixed(1)}) mimo zacieśniających się spreadów — opcje wyceniają bliski stres, zanim pojawi się on w OAS.`);
+      level = level === "wysoka" ? "średnia" : level;
+    } else if (oasWidening && vixBack){
+      notes.push(`Struktura terminowa VIX (backwardation) potwierdza kierunek OAS — dwa niezależne rynki mówią to samo.`);
+    }
+  }
+  return { level, vixBack, notes };
+}
+
+// Prognoza kierunku na 4-12 tyg. — heurystyka, NIE model predykcyjny:
+// (1) ekstremalne odczyty crack spreadu (wysoki z-score) mają historyczną tendencję
+//     do powrotu w stronę średniej, ale rzadko w pełni i rzadko szybko (patrz 2022);
+// (2) VIX w contango = rynek opcji nie wycenia bliskiej eskalacji stresu kredytowego,
+//     więc dalsze rozszerzanie OAS jest mniej prawdopodobne niż jego stabilizacja.
+// To świadomie ostrożna, jakościowa prognoza — nie sygnał transakcyjny.
+function projectForward(d, macro){
+  const z = macro.crack.zscore_2y;
+  const extreme = z !== undefined && z !== null && z >= 2;
+  const vixBack = macro.confidence ? macro.confidence.vixBack : null;
+
+  let crackForecast, oasForecast;
+  if (extreme && d.oilUp){
+    crackForecast = { dir: "partial_fade", text: `Poziom jest ekstremalny (z-score ${z.toFixed(1)}) — historycznie taki odczyt ma tendencję do złagodzenia w ciągu 4–12 tyg., ale rzadko wraca do przedkryzysowej normy w tym oknie czasowym.` };
+  } else {
+    crackForecast = { dir: "continuation", text: `Brak sygnału ekstremum wymuszającego odwrót — najbardziej prawdopodobna jest kontynuacja obecnego kierunku (${d.oilUp?"w górę":"w dół"}).` };
+  }
+  if (vixBack === false){
+    oasForecast = { dir: "stabilize", text: `VIX w contango nie wycenia bliskiej eskalacji — spready kredytowe najprawdopodobniej się ustabilizują, zamiast dalej się rozszerzać.` };
+  } else if (vixBack === true){
+    oasForecast = { dir: "widen_more", text: `VIX w backwardation wycenia dalszy stres — podwyższone ryzyko, że spready kredytowe będą się dalej rozszerzać.` };
+  } else {
+    oasForecast = { dir: "unknown", text: `Brak danych VIX — kierunek spreadów kredytowych trudny do oszacowania z wyprzedzeniem.` };
+  }
+  return { crackForecast, oasForecast, extreme, z };
+}
+
+function diagnoseRegime(data){
+  const m = data.macro;
+  const oilUp = m.crack.ret_1m > 0;
+  const crudeUp = m.crude_ret_1m > 0;
+  const oasWidening = m.hy_oas > m.hy_oas_prev;
+  const confidence = assessConfidence(m, oasWidening);
+  m.confidence = confidence; // udostępniamy projectForward()
+  const crackMag = crackMagnitude(m.crack);
+  const oasMag = oasMagnitude(m.hy_oas, m.hy_oas_prev);
+  const levelLabel = crackLevelLabel(m.crack);
+  let baseKey;
+  if (oilUp && !oasWidening) baseKey = "demand_pull";
+  else if (oilUp && oasWidening) baseKey = "supply_shock";
+  else if (!oilUp && !oasWidening) baseKey = "disinflation_tailwind";
+  else baseKey = "demand_destruction";
+  // demand_pull / supply_shock są niejednoznaczne (crack spread sam nie mówi,
+  // czy to popyt czy wąskie gardło rafineryjne) — rozstrzyga to ropa WTI.
+  const isSplit = baseKey === "demand_pull" || baseKey === "supply_shock";
+  const q = isSplit ? OIL_REGIMES[baseKey][crudeUp ? "confirmed" : "unconfirmed"] : OIL_REGIMES[baseKey];
+  const key = isSplit ? `${baseKey}_${crudeUp ? "confirmed" : "unconfirmed"}` : baseKey;
+
+  const secs = data.sectors.slice().sort((a,b)=> b.rs_1m - a.rs_1m);
+  const leader = secs[0];
+  const leaderInFavor = q.favor.includes(leader.ticker);
+
+  const withSignal = data.sectors.map(s=>({...s, rot: rotationSignal(s)}));
+  const rotationIn = withSignal.slice().sort((a,b)=>b.rot.inScore - a.rot.inScore)[0];
+  const crowdingRisk = withSignal.slice().sort((a,b)=>b.rot.outRiskScore - a.rot.outRiskScore)[0];
+
+  const body =
+    `Crack spread diesla (ULSD–WTI) ${fmt(m.crack.ret_1m)}% w ciągu miesiąca → trend ${oilUp?"w górę":"w dół"}` +
+    (isSplit ? `, ropa WTI ${crudeUp?"potwierdza (też rośnie)":"NIE potwierdza (płaska/spada)"} — ${crudeUp?"to popyt, nie sam rafineryjny efekt.":"to sygnał rafineryjny/podażowy, nie wzrost popytu."}` : ".") + ` ` +
+    (levelLabel ? `Ważne: to <strong>kierunek</strong>, nie poziom — sam poziom cracku to obecnie ${levelLabel.toLowerCase()} po korekcie sezonowej (z-score ${m.crack.zscore_2y.toFixed(1)} vs sezonowa norma na tę porę roku, wartość $${m.crack.value.toFixed(2)}/bbl vs sezonowa norma $${(m.crack.seasonal_baseline??m.crack.hist_mean_2y??0).toFixed(2)}/bbl). Płaski ret_1m przy ekstremalnym poziomie nie znaczy "neutralnie" w gospodarce. ` : ``) +
+    `Spready kredytowe HY OAS ${m.hy_oas.toFixed(2)}% (ok. 2 tyg. temu ${m.hy_oas_prev.toFixed(2)}%) → ${oasWidening?"rozszerzają się (rośnie stres)":"zacieśniają się (brak stresu)"}. ` +
+    (confidence.notes.length ? `Pewność tego odczytu: <strong>${confidence.level}</strong> — ${confidence.notes.join(" ")} ` : ``) +
+    `To daje reżim: ${q.label}. ${q.desc} ` +
+    `Sektor z najwyższym momentum 1M to ${leader.name} — ${leaderInFavor?"pasuje do tego playbooku.":"nie pasuje wprost do tego playbooku — możliwy inny katalizator niż makro."} ` +
+    `Ważniejsze pytanie niż "kto jest liderem" to "gdzie kapitał dopiero się odwraca": ${rotationIn.name} (${rotationIn.ticker}) jest wyprzedany na 3M (${fmt(rotationIn.rs_3m)} pkt RS)` +
+    (rotationIn.rot.streak>=2
+      ? ` i od ${rotationIn.rot.streak} dni z rzędu łapie siłę względną wobec S&amp;P — potwierdzony, nie jednodniowy sygnał odwrócenia. `
+      : ` i dopiero zaczyna łapać siłę względną (streak ${rotationIn.rot.streak}d) — jeszcze niepotwierdzone, może być szumem. `) +
+    `Z drugiej strony ${crowdingRisk.name} (${crowdingRisk.ticker}) miał napływy od tygodni, ale traci tempo` +
+    (crowdingRisk.rot.streak<=-2 ? `, potwierdzone ${Math.abs(crowdingRisk.rot.streak)} dniami spadku RS z rzędu — ryzyko realizacji zysków.` : ` — jeszcze bez potwierdzenia w kolejnych dniach.`);
+
+  const partial = { key, baseKey, q, oilUp, crudeUp, isSplit, oasWidening, leader, leaderInFavor, body, secs, withSignal, rotationIn, crowdingRisk, confidence, crackMag, oasMag, levelLabel };
+  partial.forecast = projectForward(partial, m);
+  return partial;
+}
+
+// Tickery ETF pokazywane wprost w każdej ćwiartce (favor z wariantu "confirmed"
+// dla ćwiartek popyt/koszt, bo to szerszy, bardziej reprezentatywny wariant —
+// wariant "unconfirmed" i tak jest opisany w werdykcie/tabeli scenariuszy).
+const QUAD_TICKERS = {
+  demand_pull: OIL_REGIMES.demand_pull.confirmed.favor,
+  supply_shock: OIL_REGIMES.supply_shock.confirmed.favor,
+  disinflation_tailwind: OIL_REGIMES.disinflation_tailwind.favor,
+  demand_destruction: OIL_REGIMES.demand_destruction.favor
+};
+
+function renderQuad(d){
+  const svg = document.getElementById("quad");
+  const W=460,H=320,cx=W/2,cy=H/2;
+  const MIN_OFF=20, MAX_ADD=90;
+
+  // Pozycja TERAZ skalowana wielkością ruchu (z-score cracku / pb ruchu OAS),
+  // nie samym znakiem — słaby ruch ląduje blisko środka, ekstremalny przy krawędzi.
+  const crackOff = MIN_OFF + MAX_ADD*d.crackMag;
+  const oasOff = (MIN_OFF-5) + (MAX_ADD-20)*d.oasMag;
+  const px = d.oilUp ? cx+crackOff : cx-crackOff;
+  const py = d.oasWidening ? cy+oasOff : cy-oasOff;
+
+  // Pozycja PROGNOZA (4-12 tyg.): jeśli ekstremum → zakładamy częściowe złagodzenie
+  // (mniejsza magnitude, ta sama strona osi). Oś OAS przesuwamy w stronę sugerowaną
+  // przez VIX (jedyny przyszłościowy sygnał w tym narzędziu).
+  const fc = d.forecast;
+  const projCrackMag = fc.crackForecast.dir==="partial_fade" ? d.crackMag*0.45 : d.crackMag;
+  const projOffX = MIN_OFF + MAX_ADD*projCrackMag;
+  const ppx = d.oilUp ? cx+projOffX : cx-projOffX;
+  let ppy;
+  if (fc.oasForecast.dir==="stabilize"){ ppy = d.oasWidening ? cy+oasOff*0.5 : cy-oasOff; }
+  else if (fc.oasForecast.dir==="widen_more"){ ppy = cy + Math.max(oasOff, (MIN_OFF-5)+(MAX_ADD-20)*0.6); }
+  else { ppy = py; }
+  const showProjection = (fc.crackForecast.dir==="partial_fade") || (fc.oasForecast.dir==="stabilize" && d.oasWidening) || (fc.oasForecast.dir==="widen_more" && !d.oasWidening);
+
+  const activeKey = d.baseKey;
+  const quadTickerText = key => QUAD_TICKERS[key].join(" · ");
+  svg.innerHTML = `
+    <rect x="0" y="0" width="${W}" height="${H}" fill="#12151f"/>
+    <rect x="${cx}" y="0" width="${W-cx}" height="${cy}" fill="${activeKey==='demand_pull'?'rgba(139,124,246,.14)':'transparent'}"/>
+    <rect x="${cx}" y="${cy}" width="${W-cx}" height="${cy}" fill="${activeKey==='supply_shock'?'rgba(139,124,246,.14)':'transparent'}"/>
+    <rect x="0" y="0" width="${cx}" height="${cy}" fill="${activeKey==='disinflation_tailwind'?'rgba(139,124,246,.14)':'transparent'}"/>
+    <rect x="0" y="${cy}" width="${cx}" height="${cy}" fill="${activeKey==='demand_destruction'?'rgba(139,124,246,.14)':'transparent'}"/>
+    <line x1="${cx}" y1="0" x2="${cx}" y2="${H}" stroke="#242a3d"/>
+    <line x1="0" y1="${cy}" x2="${W}" y2="${cy}" stroke="#242a3d"/>
+    <text x="${cx+14}" y="18" fill="#8b93a8" font-size="10.5" font-family="JetBrains Mono">CRACK ↑ / SPREADY ↓ (popytowo)</text>
+    <text x="${cx+14}" y="30" fill="#5c6482" font-size="9.5" font-family="JetBrains Mono">${quadTickerText('demand_pull')}</text>
+    <text x="${cx+14}" y="${H-22}" fill="#8b93a8" font-size="10.5" font-family="JetBrains Mono">CRACK ↑ / SPREADY ↑ (kosztowo)</text>
+    <text x="${cx+14}" y="${H-10}" fill="#5c6482" font-size="9.5" font-family="JetBrains Mono">${quadTickerText('supply_shock')}</text>
+    <text x="10" y="18" fill="#8b93a8" font-size="10.5" font-family="JetBrains Mono">CRACK ↓ / SPREADY ↓ (dezinflacja)</text>
+    <text x="10" y="30" fill="#5c6482" font-size="9.5" font-family="JetBrains Mono">${quadTickerText('disinflation_tailwind')}</text>
+    <text x="10" y="${H-22}" fill="#8b93a8" font-size="10.5" font-family="JetBrains Mono">CRACK ↓ / SPREADY ↑ (recesja)</text>
+    <text x="10" y="${H-10}" fill="#5c6482" font-size="9.5" font-family="JetBrains Mono">${quadTickerText('demand_destruction')}</text>
+    <text x="${W/2}" y="${H-2}" fill="#5c6482" font-size="10" text-anchor="middle">Crack spread diesla (kierunek + wielkość) →</text>
+    <text x="12" y="${H/2-6}" fill="#5c6482" font-size="10" transform="rotate(-90 12 ${H/2})">Spready HY OAS (kierunek + wielkość) →</text>
+    ${showProjection ? `<line x1="${px}" y1="${py}" x2="${ppx}" y2="${ppy}" stroke="#f7b955" stroke-width="1.5" stroke-dasharray="4,3"/>` : ``}
+    ${showProjection ? `<circle cx="${ppx}" cy="${ppy}" r="7" fill="none" stroke="#f7b955" stroke-width="2" stroke-dasharray="3,2"/>` : ``}
+    ${showProjection ? `<text x="${ppx+10}" y="${ppy-8}" fill="#f7b955" font-size="10" font-family="JetBrains Mono" font-weight="700">PROGNOZA 4-12T</text>` : ``}
+    <circle cx="${px}" cy="${py}" r="9" fill="#8b7cf6"><animate attributeName="r" values="8;11;8" dur="1.8s" repeatCount="indefinite"/></circle>
+    <text x="${px+13}" y="${py+4}" fill="#8b7cf6" font-size="12" font-family="JetBrains Mono" font-weight="700">TERAZ</text>
+    ${d.isSplit ? `<text x="${px+13}" y="${py+18}" fill="${d.crudeUp?'#2dd4a7':'#fb5a7e'}" font-size="10.5" font-family="JetBrains Mono">${d.crudeUp?'ropa potwierdza':'ropa NIE potwierdza'}</text>` : ""}
+  `;
+  document.getElementById("quadLegend").innerHTML =
+    `Odległość punktu <b style="color:#8b7cf6">TERAZ</b> od środka to teraz też <b>wielkość</b> ruchu (z-score poziomu cracku / pb ruchu OAS), nie tylko znak — słaby ruch ląduje blisko środka.` +
+    (d.isSplit ? ` Zielony/czerwony dopisek pokazuje, czy ropa WTI potwierdza ruch diesla (popyt) czy nie (wąskie gardło rafineryjne).` : ``) +
+    (showProjection ? ` Żółty przerywany punkt <b style="color:#f7b955">PROGNOZA 4-12T</b> to heurystyczny szacunek kierunku (powrót do średniej przy ekstremum + kierunek sugerowany przez VIX) — nie prognoza rynkowa ani porada inwestycyjna.` : ``) +
+    ` Tickery w rogach ćwiartek = faworyci ETF danego reżimu. Podświetlona ćwiartka = aktywny reżim: <b style="color:#8b7cf6">${d.q.label}</b>.`;
+}
+
+function renderVerdict(d){
+  document.getElementById("verdict-title").textContent = `Kapitał faworyzuje: ${d.q.favor.map(t=>NAMES[t]+" ("+t+")").join(", ")}`;
+  const confBadgeCls = d.confidence.level.startsWith("wysoka") ? "ok" : d.confidence.level.startsWith("średnia") ? "mid" : "bad";
+  const fc = d.forecast;
+  document.getElementById("verdict-body").innerHTML =
+    `<span class="status-pill ${confBadgeCls}" style="margin:0 0 8px;display:inline-block;">PEWNOŚĆ REŻIMU: ${d.confidence.level.toUpperCase()}</span><br>` +
+    d.body +
+    `<br><br><strong>Prognoza kierunku (4–12 tyg., heurystyka — nie sygnał transakcyjny):</strong> ${fc.crackForecast.text} ${fc.oasForecast.text}`;
+  const tags = d.q.favor.map(t=>`<span class="tag favor">FAWORYT ${t}</span>`).join("")
+             + d.q.avoid.map(t=>`<span class="tag avoid">UNIKAJ ${t}</span>`).join("");
+  document.getElementById("verdict-tags").innerHTML = tags;
+}
+
+function renderMacro(m){
+  const curveState = m.t10y2y<0 ? ["Odwrócona — ostrzeżenie","bad"] : m.t10y2y<=0.3 ? ["Płaska — dojrzały cykl","mid"] : ["Dodatnia","ok"];
+  const oasWidening = m.hy_oas > m.hy_oas_prev;
+  const oasState = m.hy_oas<OAS_TIGHT_MAX ? ["Ciasny — ryzyko-on","ok"] : m.hy_oas<OAS_STRESS_MIN ? ["Neutralny","mid"] : ["Stres kredytowy","bad"];
+  const oilUp = m.crack.ret_1m > 0;
+  const crudeUp = m.crude_ret_1m > 0;
+  const cards = [
+    {n:1, title:"Krzywa 10Y–2Y", val:(m.t10y2y*100).toFixed(0)+" pb", cls:curveState[1],
+      hint:`${m.t10y2y>=0?"+":""}${m.t10y2y.toFixed(2)} pkt proc. · ${m.t10y2y_date}<br>${curveState[0]} · wyprzedza ryzyko recesji`},
+    {n:2, title:"Spready kredytowe · HY OAS", val:m.hy_oas.toFixed(2)+"%", cls: oasWidening?"bad":"ok",
+      hint:`ok. 2 tyg. temu ${m.hy_oas_prev.toFixed(2)}% (${m.hy_oas_prev_date})<br>Kierunek: ${oasWidening?"rozszerzają się ↑ (stres rośnie)":"zacieśniają się ↓ (brak stresu)"} · ${oasState[0]}`},
+    {n:3, title:"Crack spread diesla (ULSD–WTI)", val:"$"+m.crack.value.toFixed(2)+"/bbl", cls: (m.crack.zscore_2y>=2.5?"bad":m.crack.zscore_2y>=1.5?"mid":""),
+      hint:`1T: ${fmt(m.crack.ret_1w)}% · 1M: ${fmt(m.crack.ret_1m)}% (kierunek: ${oilUp?"w górę ↑":"w dół ↓"}) · ${m.crack.date}<br>` +
+        (m.crack.zscore_2y!==undefined ? `Poziom vs sezonowa norma: z-score ${m.crack.zscore_2y.toFixed(1)} (percentyl ${m.crack.pctile_2y}%)${m.crack.seasonal_adjusted===false?" — bez korekty sezonowej, brak dat":""} — ${crackLevelLabel(m.crack)||""}<br>` : ``) +
+        (m.crack.seasonal_baseline!==undefined ? `Sezonowa norma na tę porę roku: $${m.crack.seasonal_baseline.toFixed(2)}/bbl (płaska śr. 2-letnia: $${(m.crack.hist_mean_2y||0).toFixed(2)}/bbl)<br>` : ``) +
+        `Ropa WTI (1M): ${fmt(m.crude_ret_1m)}% — ${crudeUp?"potwierdza popyt":"NIE potwierdza (podaż/rafineria)"}`}
+  ];
+  if (m.vix_term){
+    const back = m.vix_term.vix > m.vix_term.vix3m;
+    cards.push({
+      n:4, title:"Struktura terminowa VIX · JEDYNY wskaźnik przyszłościowy", val: m.vix_term.vix.toFixed(1)+" / "+m.vix_term.vix3m.toFixed(1), cls: back?"bad":"ok",
+      hint:`Spot VIX vs VIX 3M · ${m.vix_term.date}<br>${back?"Backwardation ↑ — opcje wyceniają bliski stres, ZANIM pojawi się w spreadach/cenach":"Contango (normalnie) — rynek opcji nie boi się najbliższych tygodni"}`
+    });
+  }
+  document.getElementById("macro-cards").innerHTML = cards.map(c=>`
+    <article class="card">
+      <h3><span class="num">${c.n}</span>${c.title}</h3>
+      <div class="val ${c.cls}">${c.val}</div>
+      <div class="hint">${c.hint}</div>
+    </article>`).join("");
+}
+
+// Wizualna siatka sygnałów sektorowych — bez tabeli liczb. Trzy elementy na kartę:
+// strzałka (kierunek), kropki (dni potwierdzenia z rzędu, filtr szumu) i pasek (wolumen
+// vs 20-dniowa norma). Kolor karty/strzałki = ten sam rot.tag.cls co wcześniej w tabeli,
+// więc logika sygnału się nie zmienia — zmienia się tylko sposób prezentacji.
+function renderSectorSignals(secs){
+  const el = document.getElementById("sigGrid");
+  if (!el) return;
+  const withSignal = secs.map(s=>({...s, rot: rotationSignal(s)}));
+  const sorted = withSignal.slice().sort((a,b)=>b.rot.inScore-a.rot.inScore);
+  const DOTS = 5;
+  el.innerHTML = sorted.map(s=>{
+    const dir = s.rot.turning > 0 ? "up" : s.rot.turning < 0 ? "down" : "flat";
+    const arrow = dir==="up" ? "↑" : dir==="down" ? "↓" : "→";
+    const streakAbs = Math.abs(s.rot.streak);
+    const filled = Math.min(streakAbs, DOTS);
+    const dotColor = s.rot.streak > 0 ? "g" : s.rot.streak < 0 ? "r" : "";
+    const dots = Array.from({length:DOTS}, (_,i)=>`<span class="dot ${i<filled?dotColor:''}"></span>`).join("");
+    const plus = streakAbs > DOTS ? `<span class="dot-plus">+${streakAbs-DOTS}</span>` : "";
+    const vr = s.vol_ratio || 1;
+    const volPct = Math.max(6, Math.min(100, (vr/2)*100));
+    const volState = vr>=1.3 ? "hi" : vr<0.85 ? "lo" : "";
+    const title = `${s.name}: ${s.rot.tag.label} · cena ${s.price.toFixed(2)} · RS 1M ${fmt(s.rs_1m)} pkt · wolumen ${fmtVol(s.volume)}`;
+    return `
+      <div class="sig-card ${s.rot.tag.cls}" title="${title}">
+        <div class="sig-head">
+          <span class="sig-ticker">${s.ticker}</span>
+          <span class="sig-arrow ${s.rot.tag.cls}">${arrow}</span>
+        </div>
+        <div class="sig-name">${s.name}</div>
+        <div class="sig-dots">${dots}${plus}</div>
+        <div class="vol-track"><div class="vol-mark"></div><div class="vol-fill ${volState}" style="width:${volPct}%"></div></div>
+        <div class="sig-status ${s.rot.tag.cls}">${s.rot.tag.short}</div>
+      </div>`;
+  }).join("");
+}
+
+function renderWatch(d, macro){
+  const items = [
+    `<strong>Crack spread diesla</strong> — bezpośrednie katalizatory kierunku to cotygodniowe zapasy destylatów (EIA), sezonowe zapotrzebowanie transportu/rolnictwa oraz przepustowość rafinerii. Jako wskaźnik realnej gospodarki (nie tylko cena surowca) reaguje szybciej niż PMI — to one przesuwają punkt na mapie w ciągu dni, nie tygodni.`,
+    `<strong>Spready kredytowe HY OAS</strong> — to one rozstrzygają, czy ruch crack spreadu jest zdrowym sygnałem popytowym czy ostrzeżeniem kosztowym. Jeśli crack spread rośnie a spready się NIE rozszerzają, rynek kredytowy nie widzi zagrożenia dla wzrostu — sygnał bardziej wiarygodny niż sam crack spread.`,
+    `<strong>Struktura terminowa VIX</strong> — jedyny wskaźnik w tym narzędziu, który jest naprawdę przyszłościowy, nie reakcyjny: to cena, jaką rynek opcji płaci dziś za ochronę na 30 vs 90 dni naprzód. Backwardation zwykle wyprzedza rozszerzanie się spreadów kredytowych o kilka dni do kilku tygodni — jeśli pojawia się, zanim reszta modelu to złapie, traktuj to jako wczesne ostrzeżenie.`,
+    `<strong>Rozbieżność lider vs playbook</strong> — jeśli obecny lider sektorowy (${d.leader.ticker}) nie pasuje do bieżącego reżimu, to sygnał że rynek gra inny katalizator niż diesel/kredyt — obserwuj czy się to domknie w ciągu 2–3 tygodni, czy pogłębi.`
+  ];
+  document.getElementById("catalysts").innerHTML = items.map(t=>`<li>${t}</li>`).join("");
+
+  document.getElementById("scenUp").textContent =
+    `Jeśli spready kredytowe jednocześnie się zacieśniają → ruch popytowy: ${OIL_REGIMES.demand_pull.confirmed.favor.join(", ")} zyskują, ${OIL_REGIMES.demand_pull.confirmed.avoid.join(", ")} tracą. ` +
+    `Jeśli spready się rozszerzają → sygnał kosztowy: korzysta głównie ${OIL_REGIMES.supply_shock.confirmed.favor.join(", ")}, traci ${OIL_REGIMES.supply_shock.confirmed.avoid.join(", ")}.`;
+  document.getElementById("scenDown").textContent =
+    `Jeśli spready się zacieśniają → zdrowa dezinflacja: ${OIL_REGIMES.disinflation_tailwind.favor.join(", ")} zyskują, ${OIL_REGIMES.disinflation_tailwind.avoid.join(", ")} traci. ` +
+    `Jeśli spready się rozszerzają → obawa o recesję: kapitał ucieka do ${OIL_REGIMES.demand_destruction.favor.join(", ")}, tracą ${OIL_REGIMES.demand_destruction.avoid.join(", ")}.`;
+}
+
+// Konflikt = najsilniejszy sygnał napływu kapitału (rotationIn, liczony z samej ceny/RS,
+// patrzy "w przód" na to co dzieje się teraz) siedzi na liście UNIKAJ bieżącego reżimu
+// makro (który liczony jest "wstecz", z ret_1m crack spreadu i kierunku spreadów kredytowych).
+// To nie błąd modelu — to dwa wskaźniki o różnym horyzoncie czasowym, które czasem
+// muszą się rozjechać, zanim któryś z nich "dogoni" drugi.
+function renderConflict(d, data){
+  const el = document.getElementById("conflict");
+  if(!el) return;
+
+  const inflowInAvoid = d.q.avoid.includes(d.rotationIn.ticker) && d.rotationIn.rot.inScore > 3;
+  const leaderMismatch = !d.leaderInFavor;
+  const crowdingInFavor = d.q.favor.includes(d.crowdingRisk.ticker) && d.crowdingRisk.rot.outRiskScore > 3;
+  const hasConflict = inflowInAvoid || leaderMismatch || crowdingInFavor;
+
+  if(hasConflict) logConflictIfNew(d);
+  const log = resolveConflictLog(data.sectors);
+  const stats = conflictStats(log);
+
+  let lead = "";
+  if (inflowInAvoid){
+    lead += `Najsilniejszy sygnał napływu kapitału to <strong>${d.rotationIn.ticker}</strong> (${d.rotationIn.name}) — a ten sektor jest na liście <strong>UNIKAJ</strong> w obecnym reżimie (${d.q.label.split("·")[0].trim()}). `;
+  }
+  if (leaderMismatch){
+    lead += `Lider momentum 1M to <strong>${d.leader.ticker}</strong> (${d.leader.name}), który też nie pasuje wprost do bieżącego playbooku. `;
+  }
+  if (crowdingInFavor){
+    lead += `Jednocześnie <strong>${d.crowdingRisk.ticker}</strong> (${d.crowdingRisk.name}) — formalny faworyt reżimu — traci tempo napływów, więc "przypisany" lider słabnie w tym samym momencie. `;
+  }
+  if (!hasConflict){
+    lead = `Obecnie brak wyraźnej rozbieżności — sygnał rotacji kapitału (${d.rotationIn.ticker}) jest spójny z playbookiem reżimu (${d.q.label.split("·")[0].trim()}). To nie znaczy, że tak zostanie — poniższe wydarzenia mogą to zmienić w ciągu najbliższych 1–3 tygodni.`;
+  }
+
+  const why = hasConflict ? `Dlaczego tak się dzieje: reżim makro w tym narzędziu liczony jest <strong>wstecz</strong> — na podstawie zmiany crack spreadu i spreadów kredytowych z ostatniego miesiąca. Sygnał rotacji liczony jest z bieżącej ceny/siły względnej (RS) i z definicji reaguje szybciej — rynek może już wyceniać coś, co jeszcze nie pojawiło się w danych makro (np. oczekiwane złagodzenie szoku podażowego, zmianę stóp, wyniki spółek). Rozbieżność to sygnał ostrzegawczy "obserwuj, nie ignoruj żadnej ze stron" — nie dowód, że któryś wskaźnik się myli.` : "";
+
+  const catalysts = [
+    {when:`najbliższa decyzja FOMC: ${nextFomc()}, 20:00 CET`, txt:`<strong>Decyzja FOMC</strong> — kierunek stóp wpływa na apetyt na ryzyko cykliczne, w tym na sektory takie jak ${d.rotationIn.ticker}.`},
+    {when:`środa, ${nextWednesday()}`, txt:`<strong>Cotygodniowe zapasy destylatów EIA</strong> — najszybsza twarda weryfikacja, czy wąskie gardło rafineryjne (crack spread) się pogłębia czy łagodzi.`},
+    {when:`czwartek, ${nextThursday()}`, txt:`<strong>Cotygodniowe wnioski o zasiłek dla bezrobotnych</strong> — szybki, częsty odczyt kondycji popytu krajowego, wpływa na oczekiwania co do Fed.`},
+    {when:"sezon wyników", txt:`Wyniki i prognozy spółek z koszyka <strong>${d.rotationIn.ticker}</strong> — mogą tłumaczyć napływ niezależnie od diesla czy kredytu.`}
+  ];
+
+  el.className = "conflict" + (hasConflict ? " on" : "");
+  el.innerHTML = `
+    <div class="chead"><span class="dot"></span><h2>${hasConflict ? "Rozbieżność wykryta" : "Brak wyraźnej rozbieżności"}</h2></div>
+    <div class="lead">${lead}</div>
+    ${why ? `<div class="why">${why}</div>` : ""}
+    <h4>Zbliżające się dane, które mogą to rozstrzygnąć</h4>
+    <ul>${catalysts.map(c=>`<li><span class="when">${c.when}</span> — ${c.txt}</li>`).join("")}</ul>
+    <h4>Historia rozbieżności (ta przeglądarka)</h4>
+    <div class="why">
+      ${stats.total === 0
+        ? `Brak zapisanej historii — to pierwszy wykryty przypadek, zostanie zapamiętany lokalnie i rozstrzygnięty automatycznie po ${RESOLVE_AFTER_DAYS} dniach (porównanie RS_1M z dnia wykrycia vs dziś).`
+        : `Zalogowano ${stats.total} przypadk${stats.total===1?"":(stats.total<5?"i":"ów")} rozbieżności w tej przeglądarce.
+           Rozstrzygnięte: <strong>${stats.rotation}</strong> na korzyść rotacji (RS realnie poprawił się),
+           <strong>${stats.regime}</strong> na korzyść reżimu (napływ się cofnął),
+           ${stats.neutral} bez wyraźnego kierunku, ${stats.pending} wciąż w toku (&lt;${RESOLVE_AFTER_DAYS} dni).
+           ${stats.rotation+stats.regime+stats.neutral < 5 ? " Próba wciąż zbyt mała, by traktować to jako wiarygodny wskaźnik bazowy — to się buduje z czasem." : ""}`
+      }
+      <br><span style="opacity:.75">Dane trzymane lokalnie w przeglądarce (localStorage) — nie są to statystyki rynkowe ani wspólne dla innych urządzeń/użytkowników.</span>
+    </div>
+  `;
+}
+
+// ---- Pamięć historyczna rozbieżności reżim vs rotacja (localStorage, lokalnie w przeglądarce) ----
+const CONFLICT_LOG_KEY = "qm71_conflict_log_v1";
+const RESOLVE_AFTER_DAYS = 15; // ok. 3 tyg. kalendarzowe / ~10-11 sesji
+
+function loadConflictLog(){
+  try{ return JSON.parse(localStorage.getItem(CONFLICT_LOG_KEY) || "[]"); }
+  catch(e){ return []; }
+}
+function saveConflictLog(log){
+  try{ localStorage.setItem(CONFLICT_LOG_KEY, JSON.stringify(log)); }
+  catch(e){ /* localStorage niedostępny (np. tryb prywatny) — po prostu nie zapisujemy */ }
+}
+
+// Zapisuje dzisiejszy wpis, jeśli dziś jest konflikt i jeszcze go nie zalogowano.
+function logConflictIfNew(d){
+  const inflowInAvoid = d.q.avoid.includes(d.rotationIn.ticker) && d.rotationIn.rot.inScore > 3;
+  if(!inflowInAvoid) return;
+  const today = new Date().toISOString().slice(0,10);
+  const log = loadConflictLog();
+  const idx = log.findIndex(e => e.date === today && e.ticker === d.rotationIn.ticker);
+  const entry = {
+    date: today,
+    ticker: d.rotationIn.ticker,
+    regime: d.q.label,
+    rs_1m_at_log: d.rotationIn.rs_1m,
+    inScore_at_log: d.rotationIn.rot.inScore,
+    resolved: null,       // null = w toku; "rotation" | "regime" | "neutral" po rozstrzygnięciu
+    resolved_on: null
+  };
+  if(idx >= 0) log[idx] = entry; else log.push(entry);
+  saveConflictLog(log);
+}
+
+// Sprawdza wpisy starsze niż RESOLVE_AFTER_DAYS: czy RS_1M zalogowanego tickera
+// od tamtej pory realnie poprawił się (wygrała rotacja), pogorszył (wygrał reżim),
+// czy nic się nie zmieniało (nierozstrzygnięte).
+function resolveConflictLog(sectors){
+  const log = loadConflictLog();
+  const now = new Date();
+  let changed = false;
+  log.forEach(e=>{
+    if(e.resolved) return;
+    const daysSince = Math.floor((now - new Date(e.date+"T00:00:00Z")) / 86400000);
+    if(daysSince < RESOLVE_AFTER_DAYS) return;
+    const sec = (sectors||[]).find(s=>s.ticker===e.ticker);
+    if(!sec) return; // brak świeżych danych dla tego tickera — zostaw w toku
+    const delta = sec.rs_1m - e.rs_1m_at_log;
+    e.resolved = delta > 2 ? "rotation" : (delta < -2 ? "regime" : "neutral");
+    e.resolved_on = now.toISOString().slice(0,10);
+    changed = true;
+  });
+  if(changed) saveConflictLog(log);
+  return log;
+}
+
+function conflictStats(log){
+  const rotation = log.filter(e=>e.resolved==="rotation").length;
+  const regime   = log.filter(e=>e.resolved==="regime").length;
+  const neutral  = log.filter(e=>e.resolved==="neutral").length;
+  const pending  = log.filter(e=>!e.resolved).length;
+  return {rotation, regime, neutral, pending, total: log.length};
+}
+
+function renderStatusPill(source){
+  const el = document.getElementById("statusPill");
+  const isLive = s => s.includes("-live");
+  const parts = (source||"").split("+").map(s=>s.trim());
+  const liveCount = parts.filter(isLive).length;
+  if (liveCount === parts.length && parts.length>0){ el.textContent="● LIVE"; el.className="status-pill ok"; }
+  else if (liveCount === 0){ el.textContent="● SNAPSHOT (dane nieaktualne)"; el.className="status-pill bad"; }
+  else { el.textContent="● CZĘŚCIOWO LIVE"; el.className="status-pill mid"; }
+}
+
+function renderTopPick(d, macro){
+  const el = document.getElementById("topPick");
+  const favSignals = d.withSignal.filter(s=>d.q.favor.includes(s.ticker)).sort((a,b)=>b.rot.inScore-a.rot.inScore);
+  const topFavor = favSignals[0];
+  const rotationIn = d.rotationIn;
+  const alignsWithRegime = topFavor && rotationIn.ticker === topFavor.ticker;
+  const strong = topFavor && topFavor.rot.inScore > 1.5;
+  const cyclicalRisk = new Set(["XLI","XLB","XLY","XLK","XLF","XLE"]);
+  const vixBack = macro.vix_term && macro.vix_term.vix > macro.vix_term.vix3m;
+
+  let pick, why, conf, weak;
+  if (strong) {
+    pick = topFavor;
+    weak = false;
+    conf = alignsWithRegime ? "REŻIM + ROTACJA ZGODNE" : "PASUJE DO REŻIMU";
+    why = `Pasuje do bieżącego playbooku (${d.q.label.split("·")[0].trim()}) i jednocześnie łapie napływ kapitału` +
+      (pick.rot.streak>=2 ? ` — potwierdzone ${pick.rot.streak} dniami z rzędu.` : ` (sygnał świeży, jeszcze niepotwierdzony kilkoma dniami).`);
+  } else if (topFavor) {
+    pick = topFavor;
+    weak = true;
+    conf = "REŻIM WSKAZUJE, NAPŁYW NIEPOTWIERDZONY";
+    why = `Najlepiej pasuje do bieżącego reżimu (${d.q.label.split("·")[0].trim()}), ale sygnał realnego napływu kapitału jeszcze się nie potwierdził w danych — obserwuj, nie goń.`;
+  } else {
+    pick = rotationIn;
+    weak = true;
+    conf = "POZA PLAYBOOKIEM REŻIMU";
+    why = `Żaden faworyt reżimu nie łapie jeszcze napływu — najsilniejszy sygnał rotacji w ogóle jest poza obecnym playbookiem, więc może grać inny katalizator niż diesel/kredyt.`;
+  }
+
+  if (vixBack && cyclicalRisk.has(pick.ticker)) {
+    weak = weak || true;
+    why += ` Uwaga: rynek opcji (VIX spot &gt; 3M) już wycenia bliski stres — to sygnał wyprzedzający względem spreadów kredytowych i cen sektorów, więc ten pick może się zestarzeć szybciej niż sugeruje reszta modelu.`;
+  }
+
+  el.className = "toppick" + (weak ? " weak" : "");
+  el.innerHTML = `
+    <div>
+      <div class="label">${weak ? "Obserwuj — brak silnego sygnału" : "Najbardziej prawdopodobny napływ kapitału"}</div>
+      <div class="name"><span class="tk">${pick.ticker}</span> — ${pick.name}</div>
+      <div class="why">${why}</div>
+    </div>
+    <div class="conf">${conf}</div>
+  `;
+}
+
+function paint(data){
+  const left = Math.max(0, Math.round((nextAt-Date.now())/1000));
+  document.getElementById("stamp").innerHTML =
+    `sesja ${data.asof}<br>źródło: ${data.source}` +
+    (data.generated_at ? `<br>${data.generated_at}` : "") +
+    `<br>auto-odświeżanie co 2 min` + (nextAt ? `<br>następne za ${left}s` : "");
+  renderStatusPill(data.source);
+  const d = diagnoseRegime(data);
+  renderTopPick(d, data.macro);
+  renderQuad(d);
+  renderVerdict(d);
+  renderMacro(data.macro);
+  renderSectorSignals(data.sectors);
+  renderWatch(d, data.macro);
+  renderConflict(d, data);
+}
+
+// ---- data fetching (same layered approach as the main rotation dashboard) ----
+// CORS proxy helpers — needed when page is opened as static HTML (no own backend)
+function viaProxy(url){
+  // Na Vercel używamy własnego endpointu serverless, więc dane nie zależą
+  // od zewnętrznych publicznych CORS proxy. To jest stabilniejsza ścieżka LIVE.
+  return [
+    `/api/proxy?url=${encodeURIComponent(url)}`,
+    `https://corsproxy.io/?${encodeURIComponent(url)}`,
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+    url
+  ];
+}
+function withTimeout(promise, ms=8000){
+  return Promise.race([
+    promise,
+    new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout "+ms+"ms")), ms))
+  ]);
+}
+async function fetchText(url){
+  let lastErr;
+  for (const u of viaProxy(url)){
+    try{
+      const r = await withTimeout(fetch(u, {cache:"no-store"}), 7000);
+      if (!r.ok) throw new Error(r.status);
+      return await withTimeout(r.text(), 5000);
+    } catch(e){ lastErr = e; }
+  }
+  throw lastErr;
+}
+async function fetchJson(url){
+  const t = await fetchText(url);
+  return JSON.parse(t);
+}
+
+async function convex(id){
+  const url = `https://convextrade.com/api/public/data/${id}?start=2026-07-01`;
+  let j;
+  try {
+    j = await fetchJson(url);
+  } catch(e) {
+    const r = await fetch(url, {cache:"no-store"});
+    if (!r.ok) throw new Error(id);
+    j = await r.json();
+  }
+  const data = (j.data||[]).filter(x=>x.value!=null);
+  if (!data.length) throw new Error("empty "+id);
+  const last = data.at(-1);
+  const lookback = data.length>10 ? data.at(-11) : data[0];
+  return {value:+last.value, date:last.date, prevValue:+lookback.value, prevDate:lookback.date};
+}
+function ret(closes, days){ const n=Math.min(days, closes.length-1); if(n<1) return 0; return (closes.at(-1)/closes.at(-1-n)-1)*100; }
+
+async function stooqDaily(symbol, limit=130){
+  const url = `https://stooq.com/q/d/l/?s=${symbol.toLowerCase()}.us&i=d`;
+  const text = (await fetchText(url)).trim();
+  const lines = text.split("\n");
+  if (lines.length<2 || !/^Date,/i.test(lines[0])) throw new Error("stooq "+symbol+" invalid");
+  const rows = lines.slice(1).map(l=>l.split(","));
+  const recent = rows.slice(-limit).filter(r=>r.length>=6 && !isNaN(+r[4]));
+  if (!recent.length) throw new Error("stooq "+symbol+" empty");
+  return { close: recent.map(r=>+r[4]), dates: recent.map(r=>r[0]), volume: recent.map(r=>+r[5]).filter(v=>!isNaN(v)), ts: Math.floor(new Date(recent.at(-1)[0]+"T00:00:00Z").getTime()/1000) };
+}
+async function yahooChart(symbol, range="6mo"){
+  const endpoints = [
+    `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=${range}`,
+    `https://query2.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=${range}`
+  ];
+  let lastErr;
+  for (const url of endpoints){
+    try{
+      const j = await fetchJson(url);
+      const res = j.chart.result[0];
+      const q = res.indicators.quote[0];
+      const closeOut=[], dateOut=[];
+      for (let i=0;i<q.close.length;i++){
+        if (q.close[i]!=null){ closeOut.push(q.close[i]); dateOut.push(new Date(res.timestamp[i]*1000).toISOString().slice(0,10)); }
+      }
+      return {close:closeOut, dates:dateOut, volume:(q.volume||[]).filter(v=>v!=null), ts:res.timestamp.at(-1)};
+    } catch(e){ lastErr=e; }
+  }
+  throw lastErr;
+}
+// opts.limit = ile sesji dla stooq (obcina od końca), opts.range = zakres dla Yahoo (np. "6mo", "2y").
+// Domyślne wartości odtwarzają poprzednie zachowanie (krótka historia do RS/wolumenu sektorów).
+async function fetchDaily(symbol, opts={}){
+  const { limit=130, range="6mo" } = opts;
+  for (const p of [stooqDaily, yahooChart]){
+    try{ return p===stooqDaily ? await p(symbol, limit) : await p(symbol, range); }
+    catch(e){ console.warn(`Dostawca ${p.name} nie zwrócił danych dla ${symbol}:`, e); }
+  }
+  throw new Error("all providers failed for "+symbol);
+}
+
+// Ile dni z rzędu (nieprzerwanie) rośnie (+) lub spada (-) stosunek cena_sektora/cena_SPY.
+// To potwierdzenie sygnału odwrócenia — jeden dobry dzień to szum, kilka pod rząd to trend.
+function computeStreak(sectorClose, spyClose){
+  const n = Math.min(sectorClose.length, spyClose.length, 20);
+  if (n < 3) return 0;
+  const sc = sectorClose.slice(-n), bc = spyClose.slice(-n);
+  const ratio = sc.map((v,i)=>v/bc[i]);
+  let streak = 0;
+  for (let i=ratio.length-1; i>0; i--){
+    const diff = ratio[i]-ratio[i-1];
+    if (streak===0){ streak = diff>=0 ? 1 : -1; continue; }
+    if (streak>0 && diff>=0) streak++;
+    else if (streak<0 && diff<0) streak--;
+    else break;
+  }
+  return streak;
+}
+
+async function loadLive(){
+  const data = JSON.parse(JSON.stringify(FALLBACK));
+  data.generated_at = new Date().toISOString().replace("T"," ").slice(0,16)+" UTC";
+  const notes = [];
+  try{
+    const [curve, oas] = await Promise.all([convex("T10Y2Y"), convex("BAMLH0A0HYM2")]);
+    data.macro.t10y2y = curve.value; data.macro.t10y2y_date = curve.date;
+    data.macro.hy_oas = oas.value; data.macro.hy_oas_date = oas.date;
+    data.macro.hy_oas_prev = oas.prevValue; data.macro.hy_oas_prev_date = oas.prevDate;
+    notes.push("makro-live");
+  } catch(e){ console.warn("Makro live fetch nieudany:", e); notes.push("makro-snapshot"); }
+
+  try{
+    const all = ["SPY", DIESEL_TICKER, CRUDE_TICKER, VIX_TICKER, VIX3M_TICKER, ...TICKERS];
+    const charts = {};
+    for (let i=0;i<all.length;i+=4){
+      const part = all.slice(i,i+4);
+      const got = await Promise.all(part.map(async t=>[t, await fetchDaily(t)]));
+      got.forEach(([t,c])=>charts[t]=c);
+    }
+    const spyC = charts.SPY.close;
+    const spy1w=ret(spyC,5), spy1m=ret(spyC,21), spy3m=ret(spyC,63);
+    const avg20 = a => a.slice(-20).reduce((s,x)=>s+x,0)/Math.min(20,a.length);
+    data.asof = new Date(charts.SPY.ts*1000).toISOString().slice(0,10);
+
+    // Crack spread diesla ($/bbl) = (ULSD $/gal × 42) − WTI $/bbl.
+    // Wyrównujemy obie serie do wspólnej, najkrótszej długości (ostatnie N sesji),
+    // bo Yahoo czasem zwraca lekko różną liczbę dni dla różnych kontraktów.
+    const dieselC = charts[DIESEL_TICKER].close;
+    const crudeC = charts[CRUDE_TICKER].close;
+    const n = Math.min(dieselC.length, crudeC.length);
+    const crackSeries = Array.from({length:n}, (_,i) => {
+      const di = dieselC.length-n+i, ci = crudeC.length-n+i;
+      return dieselC[di]*42 - crudeC[ci];
+    });
+    data.macro.crack = {
+      value: +crackSeries.at(-1).toFixed(2),
+      ret_1w: +ret(crackSeries,5).toFixed(2),
+      ret_1m: +ret(crackSeries,21).toFixed(2),
+      date: data.asof
+    };
+    data.macro.crude_ret_1m = +ret(crudeC,21).toFixed(2);
+
+    // Poziom cracku vs sezonowa norma (z-score/percentyl po korekcie sezonowej) — osobny,
+    // dłuższy fetch, bo krótka historia (6mo/130 sesji) użyta wyżej do ret_1w/1m nie
+    // wystarcza do odróżnienia "ekstremalnie wysoko jak na tę porę roku" od "w normie".
+    // Jeśli się nie uda albo zabraknie dat do korekty sezonowej, spadamy na płaski
+    // (nieskorygowany) z-score jako gorszy, ale wciąż użyteczny fallback — nigdy nie zgadujemy.
+    try{
+      const [dieselLong, crudeLong] = await Promise.all([
+        fetchDaily(DIESEL_TICKER, {limit:520, range:"2y"}),
+        fetchDaily(CRUDE_TICKER, {limit:520, range:"2y"})
+      ]);
+      const dl = dieselLong.close, cl = crudeLong.close;
+      const nLong = Math.min(dl.length, cl.length);
+      const crackLong = Array.from({length:nLong}, (_,i)=>{
+        const di=dl.length-nLong+i, ci=cl.length-nLong+i;
+        return dl[di]*42 - cl[ci];
+      });
+      const crackDatesLong = Array.from({length:nLong}, (_,i)=>{
+        const di=dl.length-nLong+i;
+        return (dieselLong.dates && dieselLong.dates[di]) || null;
+      });
+      if (nLong >= 60){
+        const seasonal = seasonalAdjust(crackLong, crackDatesLong, 15);
+        if (seasonal){
+          data.macro.crack.zscore_2y = seasonal.zscoreLast;
+          data.macro.crack.pctile_2y = seasonal.pctileLast;
+          data.macro.crack.seasonal_baseline = seasonal.baselineLast;
+          data.macro.crack.hist_mean_2y = seasonal.flatMean;
+          data.macro.crack.seasonal_adjusted = true;
+        } else {
+          const mean = crackLong.reduce((s,x)=>s+x,0)/crackLong.length;
+          const variance = crackLong.reduce((s,x)=>s+(x-mean)**2,0)/crackLong.length;
+          const std = Math.sqrt(variance);
+          const last = crackLong.at(-1);
+          data.macro.crack.zscore_2y = std>0 ? +((last-mean)/std).toFixed(2) : 0;
+          data.macro.crack.pctile_2y = +(100*crackLong.filter(v=>v<=last).length/crackLong.length).toFixed(1);
+          data.macro.crack.hist_mean_2y = +mean.toFixed(2);
+          data.macro.crack.seasonal_adjusted = false;
+        }
+      }
+    } catch(e){ console.warn("Długa historia cracku (z-score poziomu) niedostępna:", e); }
+
+    try{
+      data.macro.vix_term = {
+        vix: +charts[VIX_TICKER].close.at(-1).toFixed(2),
+        vix3m: +charts[VIX3M_TICKER].close.at(-1).toFixed(2),
+        date: data.asof
+      };
+    } catch(e){ console.warn("VIX term structure niedostępna:", e); }
+
+    data.sectors = TICKERS.map(t=>{
+      const c = charts[t].close, v = charts[t].volume;
+      const r1w=ret(c,5), r1m=ret(c,21), r3m=ret(c,63);
+      const av = avg20(v);
+      return {
+        ticker:t, name:NAMES[t], price:+c.at(-1).toFixed(2),
+        ret_1w:+r1w.toFixed(2), ret_1m:+r1m.toFixed(2), ret_3m:+r3m.toFixed(2),
+        rs_1w:+(r1w-spy1w).toFixed(2), rs_1m:+(r1m-spy1m).toFixed(2), rs_3m:+(r3m-spy3m).toFixed(2),
+        streak_days: computeStreak(c, spyC),
+        volume:v.at(-1), vol_ratio:+(v.at(-1)/av).toFixed(2)
+      };
+    });
+    notes.push("etf-live");
+  } catch(e){ console.warn("ETF live fetch nieudany:", e); notes.push("etf-snapshot"); }
+
+  data.source = notes.join(" + ");
+  return data;
+}
+
+async function load(){
+  // 1) najpierw szybki FALLBACK, żeby UI nie wisiało na "sprawdzanie źródła…"
+  paint(FALLBACK);
+  try{
+    const local = await withTimeout(fetch("/api/dashboard-quadrant", {cache:"no-store"}), 2500);
+    if (local.ok){ paint(await local.json()); return; }
+  } catch(e){ console.info("Brak lokalnego endpointu (oczekiwane przy hostingu statycznym):", e); }
+  try{
+    const live = await withTimeout(loadLive(), 25000);
+    paint(live);
+  } catch(e){
+    console.error("loadLive() padło lub timeout — zostawiam FALLBACK:", e);
+    // FALLBACK już jest namalowany na początku
+  }
+}
+
+document.getElementById("refresh").addEventListener("click", ()=>{ nextAt=Date.now()+REFRESH_MS; load(); });
+nextAt = Date.now()+REFRESH_MS;
+load();
+setInterval(()=>{ nextAt=Date.now()+REFRESH_MS; load(); }, REFRESH_MS);
+setInterval(()=>{
+  const el = document.getElementById("stamp");
+  if (!el || !nextAt) return;
+  const left = Math.max(0, Math.round((nextAt-Date.now())/1000));
+  el.innerHTML = el.innerHTML.replace(/następne za \d+s/, `następne za ${left}s`);
+}, 1000);
+</script>
+</body>
+</html>
